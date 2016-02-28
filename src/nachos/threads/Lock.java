@@ -73,10 +73,6 @@ public class Lock {
 	return (lockHolder == KThread.currentThread());
     }
     
-    public void addWaitqueue(KThread toAdd){
-    	waitQueue.waitForAccess(toAdd);
-    }
-
     private KThread lockHolder = null;
     private ThreadQueue waitQueue =
 	ThreadedKernel.scheduler.newThreadQueue(true);

@@ -1,5 +1,7 @@
 package nachos.threads;
 
+import java.util.LinkedList;
+
 import nachos.machine.*;
 
 /**
@@ -14,6 +16,10 @@ public class Communicator {																			// Implement whole class
      * Allocate a new communicator.
      */
     public Communicator() {
+    	coms = new Lock();
+    	listener = new LinkedList();
+    	speaker = new LinkedList();
+    	hold = new LinkedList();
     }
 
     /**
@@ -27,6 +33,23 @@ public class Communicator {																			// Implement whole class
      * @param	word	the integer to transfer.
      */
     public void speak(int word) {
+    	System.out.println(this.toString());
+    	System.out.println(KThread.currentThread().toString());
+    	
+    	Machine.interrupt().disable();
+    	coms.acquire();
+    	hold.add( (Integer)word);
+    	if (!listener.isEmpty()){
+    		coms.release();
+    		listener.poll().ready();
+    		Machine.interrupt().enable();
+    	}
+    	else{
+    		speaker.addLast(KThread.currentThread());
+    		coms.release();
+    		speaker.getLast().sleep();
+    		Machine.interrupt().enable();
+    	}
     }
 
     /**
@@ -36,6 +59,24 @@ public class Communicator {																			// Implement whole class
      * @return	the integer transferred.
      */    
     public int listen() {
-	return 0;
+    	coms.acquire();
+    	Machine.interrupt().disable();
+    	if(!speaker.isEmpty()){
+    		coms.release();
+    		speaker.poll().ready();
+    		Machine.interrupt().enable();
+    	}
+    	else{
+    		listener.addLast(KThread.currentThread());
+    		coms.release();
+    		listener.getLast().sleep();
+    		Machine.interrupt().enable();
+    	}
+	return hold.poll();
     }
+    
+    private Lock coms;
+	private LinkedList<KThread> listener;
+	private LinkedList<KThread> speaker;
+	private LinkedList<Integer> hold;
 }

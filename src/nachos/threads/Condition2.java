@@ -75,12 +75,6 @@ public class Condition2{
 	}
 	Machine.interrupt().disable();
     }
-    
-    public void aquire(KThread curr){
-    	System.out.println(this.toString());
-		System.out.println(KThread.currentThread().toString());
-		conditionLock.acquire();
-    }
 
     private Lock conditionLock;
     private LinkedList<KThread> threads = new LinkedList<KThread>();
