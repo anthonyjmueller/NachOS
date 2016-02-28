@@ -1,5 +1,7 @@
 package nachos.threads;
 
+import java.util.LinkedList;
+
 import nachos.machine.*;
 
 /**
@@ -11,7 +13,7 @@ import nachos.machine.*;
  *
  * @see	nachos.threads.Condition
  */
-public class Condition2 {
+public class Condition2{
     /**
      * Allocate a new condition variable.
      *
@@ -33,8 +35,11 @@ public class Condition2 {
     public void sleep() {
 	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
 
+	 Machine.interrupt().disable();
 	conditionLock.release();
-
+	threads.add(KThread.currentThread());
+	KThread.currentThread().sleep();
+	 Machine.interrupt().enable();
 	conditionLock.acquire();
     }
 
@@ -44,6 +49,15 @@ public class Condition2 {
      */
     public void wake() {
 	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+	Machine.interrupt().disable();
+			if(!threads.isEmpty()){
+				conditionLock.release();
+				threads.peek().ready();
+				KThread temp = threads.poll();
+				conditionLock.acquire();
+			}
+		
+		Machine.interrupt().enable();
     }
 
     /**
@@ -52,7 +66,22 @@ public class Condition2 {
      */
     public void wakeAll() {
 	Lib.assertTrue(conditionLock.isHeldByCurrentThread());
+	Machine.interrupt().disable();
+	while(!threads.isEmpty()){
+		conditionLock.release();
+		threads.peek().ready();
+		KThread temp = threads.poll();
+		conditionLock.acquire();
+	}
+	Machine.interrupt().disable();
+    }
+    
+    public void aquire(KThread curr){
+    	System.out.println(this.toString());
+		System.out.println(KThread.currentThread().toString());
+		conditionLock.acquire();
     }
 
     private Lock conditionLock;
+    private LinkedList<KThread> threads = new LinkedList<KThread>();
 }
